@@ -63,20 +63,54 @@ objective junk: wrong subject entirely, watermarked, too small, corrupt. Editori
 aesthetic calls belong to phase 2, which has context the subagent lacks. A pool that is too
 thin can't be recovered at that point; a pool with some duds can.
 
-Downscale on save to roughly 2× intended display size. A full-res Commons scan can be
-8000px wide, and decoded bitmaps are what actually consume memory at runtime.
+### Retrieval — measured against the live APIs
 
-Sources: see `free-image-apis-reference.md` for the surveyed landscape. Minimum viable set
-is Openverse for discovery, Wikimedia + Library of Congress for anything historical, and
-Unsplash or Pexels for modern photography. Wikipedia *article* images are worth trying
-before Commons full-text search — they're already curated for the topic.
+**Use Commons categories, not text search.** This is the single most important finding in
+phase 1. Full-text search silently ignores qualifiers:
 
-**Wikimedia enforces rate limits as of 2026**: 10 req/min unidentified, 200 req/min with a
-compliant `User-Agent` carrying a name and contact. Set one or phase 1 crawls.
+- `"Golden Gate Bridge construction 1935"` → top hit is the **25 de Abril Bridge in
+  Lisbon**. Wrong continent.
+- `"Golden Gate Bridge under construction"` → six results, **all photographed in 2022**.
+  The words "under construction" did nothing.
+- `Category:Construction of the Golden Gate Bridge` → **10 of 10** genuinely
+  construction-era, dated 1933–1936, all public domain.
 
-Note that downloading everything locally matches Wikimedia, LoC and Pixabay's terms but
-conflicts with Unsplash's requirement to serve from their CDN. Moot for personal use, but
-Unsplash is the odd one out if a single consistent path is ever wanted.
+So retrieval is two calls, both trivial:
+
+1. `list=search&srnamespace=14` — find candidate categories for the topic.
+2. `generator=categorymembers&gcmtype=file&prop=imageinfo` — pull the files.
+
+Text search is the fallback for when no good category exists, not the default.
+
+**One call returns everything.** `prop=imageinfo&iiprop=url|size|mime|extmetadata` with
+`iiurlwidth=N` gives the full URL, a **server-side thumbnail at width N**, dimensions, mime,
+licence and attribution together. No second lookup, and no local downscaling step — asking
+for `iiurlwidth=1200` means the 8000px original is never transferred at all. `sips` is
+unnecessary.
+
+**Set a `User-Agent` with contact info.** 10 req/min without, 200 with (2026 limits, real
+and enforced).
+
+### Source status
+
+| Source | State |
+|---|---|
+| Wikimedia Commons | **Primary.** Keyless, rich metadata, categories give high precision. |
+| Openverse | Weak for historical topics — 13 results for the construction query, most under 500px, mostly `by-nc-nd`, one of them in Galway. Keep as fallback. |
+| Library of Congress | **403 Forbidden** on every endpoint and User-Agent tried, including a browser UA. `free-image-apis-reference.md` is out of date. Needs investigation before it can be relied on — a loss, since HAER is the best source for US infrastructure. |
+| Unsplash / Pexels | Not needed yet. Only relevant for modern photography, which is the one category nothing is short of. |
+
+Downloading locally matches Wikimedia and Pixabay's terms but conflicts with Unsplash's
+requirement to serve from their CDN. Moot for personal use, but Unsplash is the odd one out
+if one consistent path is ever wanted.
+
+### Scripting
+
+Less than expected. The triage step needs no code — the subagent downloads a file and reads
+it; vision is the agent looking at a local image. The two Wikimedia calls are simple enough
+to issue directly. A thin helper normalising `(query, source) → [{url, thumb, dims, licence,
+attribution}]` is worth having once a second source is added, but it's tens of lines, not a
+component.
 
 ---
 
