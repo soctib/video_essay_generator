@@ -95,10 +95,15 @@ and enforced).
 
 | Source | State |
 |---|---|
-| Wikimedia Commons | **Primary.** Keyless, rich metadata, categories give high precision. |
-| Openverse | Weak for historical topics — 13 results for the construction query, most under 500px, mostly `by-nc-nd`, one of them in Galway. Keep as fallback. |
-| Library of Congress | **403 Forbidden** on every endpoint and User-Agent tried, including a browser UA. `free-image-apis-reference.md` is out of date. Needs investigation before it can be relied on — a loss, since HAER is the best source for US infrastructure. |
-| Unsplash / Pexels | Not needed yet. Only relevant for modern photography, which is the one category nothing is short of. |
+| Wikimedia Commons | **Primary for historical.** Keyless, rich metadata, categories give high precision. |
+| Wikipedia article images | **Best default for a known subject.** One call, 27 usable rasters for the bridge, curated by editors — opening day, cable cross-section, a 1937 rivet, the anniversary plaque. No query tuning needed. |
+| Flickr | **Fills both gaps.** `is_commons=1` gives institutional archives (15 precise historical hits). And crucially, plain Flickr covers *recent* subjects: the 2024 suicide-deterrent net, which Commons has nothing at all for, returns two on-topic photographs from July 2024. Key already held. |
+| Internet Archive | Keyless, 115 results, decent breadth. Maps and ephemera. |
+| Commons / Flickr text search | Unusable alone — both silently drop qualifiers. "under construction" returned 2022 photos; Flickr's CC search returned the Noyo River Bridge and the Embassy of Argentina. |
+| Openverse | Thin: 13 results, most under 500px, mostly `by-nc-nd`, one in Galway. |
+| Library of Congress | **403** on every endpoint and User-Agent tried. HAER is unavailable, which is a real loss for US infrastructure. |
+| DuckDuckGo / headless browser | Not needed. Flickr covered the recent tier we thought required it. Revisit only on a concrete failure. |
+| Brave / Google CSE | Dead ends. Brave killed its free tier in Feb 2026 and bills a card on file; Google's Custom Search JSON API is closed to new customers. |
 
 Downloading locally matches Wikimedia and Pixabay's terms but conflicts with Unsplash's
 requirement to serve from their CDN. Moot for personal use, but Unsplash is the odd one out
@@ -111,6 +116,32 @@ it; vision is the agent looking at a local image. The two Wikimedia calls are si
 to issue directly. A thin helper normalising `(query, source) → [{url, thumb, dims, licence,
 attribution}]` is worth having once a second source is added, but it's tens of lines, not a
 component.
+
+### Generated imagery — the third tier
+
+For subjects where no photograph exists, the deck being HTML means a slide need not be a
+photograph at all. Three distinct things, and they want different tools:
+
+- **Diagrams: hand-write the SVG.** Do not generate them. A generated diagram bakes its
+  text in at fixed resolution — it can't match the essay's typography, respond to theme, or
+  scale. Written SVG is a few KB, infinitely scalable, and every label is styleable. Tested:
+  Gemini produces a genuinely good labelled bridge cross-section, and it is still the wrong
+  artefact for this pipeline.
+- **Illustration and texture: generate.** Where precision doesn't matter and hand-authoring
+  is impractical. 52 image-output models are on the existing OpenRouter account — no new
+  signup, priced per image token.
+- **Charts: from the research document's own numbers.** Toll history, traffic volume, cost
+  breakdown. Inline SVG or a chart library, live in the DOM.
+
+**ZDR constraint:** the account has zero-data-retention enabled, which excludes providers
+that don't offer it — Recraft and Flux both fail with *"ZDR violation (account settings)"*.
+Google and OpenAI image models work. Consequence: Recraft's **vector** models are
+unavailable, so whether they emit real SVG is untested. Configurable at
+`openrouter.ai/settings/privacy`, but it's a deliberate privacy choice, not an oversight.
+
+**The line:** nothing generated may read as evidence. A diagram of how a suspension bridge
+works is fine. A generated photograph of the 1937 opening is a fabrication, and personal use
+doesn't change that — it makes the output untrustworthy to your own future self.
 
 ---
 
@@ -260,7 +291,8 @@ Recorded so they don't creep back in:
   seven Aura-2 German voices exist — but it still shapes the authoring prompt, and Gemini's
   expressiveness outside English is untested.
 - Video clips via `yt-dlp`. In the original plan, never discussed.
-- Generated charts and collages — deferred to a second gathering round, shape unknown.
+- Whether Recraft's vector models emit real SVG — blocked by the ZDR account setting, so
+  untested. Only matters if hand-written SVG turns out to be too slow for diagrams.
 - Scrubbable vs. linear playback. Linear first; the slide index is in the DOM either way,
   so a scrubber stays additive.
 - Music bed. Twenty minutes of narration over silence is starker than it sounds.
