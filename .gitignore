@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+# Build output
+dist/
+build/
+out/
+*.tsbuildinfo
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+.vite/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# Caches
+.cache/
+.eslintcache
+.parcel-cache/
+.npm/
+
+# Generated media & working files
+# (video essay renders, audio, intermediates — keep them out of git)
+output/
+renders/
+tmp/
+temp/
+assets/generated/
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+*.wav
+*.mp3
+*.m4a
+*.aac
+*.flac
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
