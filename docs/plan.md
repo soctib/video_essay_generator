@@ -66,8 +66,17 @@ thin can't be recovered at that point; a pool with some duds can.
 Downscale on save to roughly 2× intended display size. A full-res Commons scan can be
 8000px wide, and decoded bitmaps are what actually consume memory at runtime.
 
-Sources: Wikimedia Commons and Openverse to start. Wikipedia *article* images are worth
-trying before Commons full-text search — they're already curated for the topic.
+Sources: see `free-image-apis-reference.md` for the surveyed landscape. Minimum viable set
+is Openverse for discovery, Wikimedia + Library of Congress for anything historical, and
+Unsplash or Pexels for modern photography. Wikipedia *article* images are worth trying
+before Commons full-text search — they're already curated for the topic.
+
+**Wikimedia enforces rate limits as of 2026**: 10 req/min unidentified, 200 req/min with a
+compliant `User-Agent` carrying a name and contact. Set one or phase 1 crawls.
+
+Note that downloading everything locally matches Wikimedia, LoC and Pixabay's terms but
+conflicts with Unsplash's requirement to serve from their CDN. Moot for personal use, but
+Unsplash is the odd one out if a single consistent path is ever wanted.
 
 ---
 
@@ -104,22 +113,42 @@ matters for something being fed to a speech API.
 
 ## 4. Phase 3 — audio
 
-Small Python script. OpenRouter `POST /api/v1/audio/speech`, OpenAI-compatible, returns a
-raw byte stream.
+Small Python script. OpenRouter `POST /api/v1/audio/speech`, OpenAI-compatible in shape,
+returns a raw byte stream.
 
-Verified details that cost time otherwise:
+Model: `google/gemini-3.1-flash-tts-preview`, voice `Charon`. 18 speech models are on the
+roster; free tiers exist (`deepgram/flux-tts:free`, `fish-audio/s2.1-pro-free:free`) and
+`hexgrad/kokoro-82m` is cheap enough to be free in practice, which makes iteration costless.
 
-- **`response_format` defaults to `pcm`.** Set `mp3` explicitly, or you get unplayable
-  files with the wrong extension.
-- **Model slugs are date-stamped** — `openai/gpt-4o-mini-tts-2025-12-15`, not
-  `gpt-4o-mini-tts`. Undated slugs 400 with "Model X does not exist."
-- **Style is a parameter, not a prefix.** OpenAI models take `instructions`; Azure
-  MAI-Voice-2 takes `style` + `styledegree`. Do not prepend direction lines to `input` —
-  that's how you end up with stage directions narrated aloud.
+**Measured against the live API, not from documentation.** The generic OpenRouter TTS
+guidance is written for OpenAI's speech models, which are not on this roster, and it is
+actively wrong for Gemini:
+
+- **Gemini accepts `pcm` only.** Requesting `mp3` returns a 400: *"Gemini TTS only supports
+  response_format=\"pcm\"."* Output is raw s16le, 24 kHz, mono. Converting with ffmpeg is
+  therefore a required step, not an optional one:
+  `ffmpeg -f s16le -ar 24000 -ac 1 -i in.pcm out.mp3`
+- **Style steering is a prefix, not a parameter — the reverse of the documented advice.**
+  Prepending a direction line to `input` works, and works hard: against a 10.08s baseline,
+  "speak extremely slowly, solemnly, with long pauses" gave 24.08s and "speak very fast,
+  breathless" gave 6.76s. A 3.5× range.
+- **The `instructions` parameter is silently ignored.** Same directions passed that way
+  produced 10.16s and 10.00s — baseline, no error, no effect. This is the dangerous failure
+  mode: per-chunk style would have appeared to work and done nothing.
+- **The direction is not narrated.** Transcribing the steered audio returns the narration
+  verbatim with no trace of the direction. The original worry was unfounded — for this
+  model, with the direction on its own line before the text.
+- **Generation is non-deterministic.** Identical requests differ (464,640 vs 472,320 bytes,
+  ~1.6% spread). Steering effects have to clear that band to mean anything; the ones above
+  clear it by an order of magnitude.
 - **Discover the roster** via `GET /api/v1/models?output_modalities=speech`, which also
   returns `supported_voices` per model. Don't hardcode.
-- Priced per character. ~3,000 words is ~18,000 characters, so cost is not a design
-  constraint.
+- German is well covered if it comes into scope — `de-DE-Klaus:MAI-Voice-2` and seven
+  Aura-2 German voices. Gemini's voices are not language-tagged.
+
+Per-model variation is the real lesson: format support and steering mechanism both differ
+by provider. Anything learned here applies to Gemini and should be re-tested if the model
+changes.
 
 Output is `audio/01.mp3`, `audio/02.mp3`, … indexed by position in `narration.json`. Index
 naming is predictable from the JSON alone, so phase 4 can write `<audio src>` references
@@ -193,8 +222,9 @@ Recorded so they don't creep back in:
   drift between it and `narration.json`. Depends on whether they'd ever be switched on.
 - Target length. 20 minutes is aspirational; 6 minutes is a much easier thing to get
   *good*, and the pipeline is identical.
-- German-language essays. Constrains model choice, voice selection and the authoring prompt
-  at once, so it's cheap to decide early and expensive to retrofit.
+- German-language essays. Voice availability is no longer the blocker — `de-DE-Klaus` and
+  seven Aura-2 German voices exist — but it still shapes the authoring prompt, and Gemini's
+  expressiveness outside English is untested.
 - Video clips via `yt-dlp`. In the original plan, never discussed.
 - Generated charts and collages — deferred to a second gathering round, shape unknown.
 - Scrubbable vs. linear playback. Linear first; the slide index is in the DOM either way,
