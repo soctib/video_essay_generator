@@ -35,7 +35,7 @@ before cable spinning finished is a better opening for a construction passage th
 written from the prose. Let that happen.
 
 If you need to see something, open the 1200px file. To compare several, contact-sheet the
-320px thumbs (`src/contact_sheet.py`) rather than opening each one.
+320px thumbs (`gather-images/contact_sheet.py`) rather than opening each one.
 
 ## Pass 1 — Shape
 
@@ -103,7 +103,7 @@ Keep chunks under ~70 words.
 Then run the audit:
 
 ```bash
-python3 src/audit_narration.py essays/<slug>/narration.json
+python3 .claude/skills/write-narration/audit_narration.py essays/<slug>/narration.json
 ```
 
 It counts em dashes, negative parallelisms ("not just X, it's Y"), rule-of-three lists,

@@ -88,7 +88,8 @@ Fetch the survivors as **320px thumbnails** — `iiurlwidth=320` on Wikimedia, `
 on Flickr — into `images/.candidates/`. Then tile them:
 
 ```bash
-python3 src/contact_sheet.py sheet.jpg --dir essays/<slug>/images/.candidates
+python3 .claude/skills/gather-images/contact_sheet.py \
+    sheet.jpg --dir essays/<slug>/images/.candidates
 ```
 
 Look at the sheet — **one vision call for sixteen images** — and shortlist by label. This is
