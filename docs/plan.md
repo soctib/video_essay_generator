@@ -28,6 +28,8 @@ narration.json
     │
     └──▼  phase 4 — deck         AI, creative
         index.html
+                ▲
+      music/library.json         curated once by hand, reused across essays
 ```
 
 Phases 3 and 4 both consume `narration.json` and are independent of each other. One is a
@@ -226,7 +228,63 @@ file-exists check earns its place only for resuming a batch that died partway.
 
 ---
 
-## 5. Phase 4 — deck
+## 5. Music
+
+Background music, assigned per slide, usually unobtrusive and occasionally not.
+
+**Music does not need per-essay sourcing.** Images must be topic-specific — that's the
+entire reason phase 1 exists. Music isn't. A dozen or two tracks covering a few moods get
+reused across every essay, so this is a one-time curation job, not a pipeline stage.
+
+**Curated by hand, not generated.** Google Lyria is on the OpenRouter account and would work,
+but human-made music is preferred and manual curation is genuinely the better method here:
+selection has to be made by ear, which the model cannot do. Its picks would be guesses from
+text descriptions. An hour spent choosing twenty good tracks pays out permanently.
+
+Sources: YouTube's Audio Library (no API — download by hand from Studio), Incompetech,
+Musopen, and the Internet Archive, which is already proven keyless from phase 1 testing and
+holds a lot of public-domain classical and 78rpm material.
+
+### `music/library.json`
+
+Written once, by hand, at curation time:
+
+```json
+{ "id": "sparse-02", "file": "music/sparse-02.mp3",
+  "mood": "quiet, unresolved", "intensity": 2, "tempo": "slow",
+  "duration": 184, "loops_cleanly": true,
+  "credit": "Kevin MacLeod — Incompetech (CC BY)" }
+```
+
+`loops_cleanly` is worth recording while listening; it's far easier to notice then than to
+detect later. The judgement stays with the curator — assignment is then mechanical: match a
+slide's tone to a tag and write `data-music="sparse-02"` on the slide div.
+
+### Runtime
+
+**Music is a separate timeline from narration.** Slides own narration; music spans *runs* of
+slides. Assignment is still per-slide, but the rule at a transition is: if the incoming
+slide names the same track, do nothing. Different track, crossfade. Same-track continuity
+falls out for free, and a slide with no `data-music` fades the bed out.
+
+This splits the audio implementation:
+
+- **Narration stays plain `<audio>`.** `ended` drives slide advance, exactly as before.
+- **Music uses Web Audio.** `<audio loop>` is *not* gapless — MP3 encoder padding makes a
+  short bed click audibly every loop. An `AudioBufferSourceNode` with `loop = true` is
+  genuinely gapless, and it comes with a `GainNode`.
+
+That gain node then gives three things from one object: independent music volume (a real
+control, since a bed is easily too loud), crossfades between tracks, and **ducking** —
+ramping music down while a narration chunk plays and back up in the gaps, which is what
+makes a bed sit under speech instead of fighting it.
+
+Roughly 60–80 lines of music controller, and it lives in the shared engine, so it's written
+once regardless of how many essays follow.
+
+---
+
+## 6. Phase 4 — deck
 
 A template supplies the **engine**; the AI writes the **look**.
 
@@ -261,7 +319,7 @@ Runtime mechanics that matter:
 
 ---
 
-## 6. Rejected, and why
+## 7. Rejected, and why
 
 Recorded so they don't creep back in:
 
@@ -273,13 +331,16 @@ Recorded so they don't creep back in:
 - **ffprobe durations written at build time.** `audio.ended` and runtime `audio.duration`
   cover it.
 - **A TTS cache subsystem.** See phase 3.
+- **Generated background music.** Lyria is available and would work, but music selection is
+  a by-ear judgement the model can't make, and a curated library is reused across every
+  essay rather than rebuilt per essay.
 - **Deriving image queries from finished narration.** This is the inversion the whole plan
   turns on. Queries written from committed prose return confident garbage, and the text has
   already promised to describe something that may not exist.
 
 ---
 
-## 7. Open
+## 8. Open
 
 - Language for the two scripts. Python assumed — the shell-out work is pleasant and every
   local-TTS or vision escape hatch is Python-first — but not actually settled.
@@ -295,7 +356,6 @@ Recorded so they don't creep back in:
   untested. Only matters if hand-written SVG turns out to be too slow for diagrams.
 - Scrubbable vs. linear playback. Linear first; the slide index is in the DOM either way,
   so a scrubber stays additive.
-- Music bed. Twenty minutes of narration over silence is starker than it sounds.
 - Whether `research.md` lives in the repo. Probably yes — it's small and it's provenance.
 - The first essay subject. Having a real one in hand will settle more of these than another
   round of planning.
