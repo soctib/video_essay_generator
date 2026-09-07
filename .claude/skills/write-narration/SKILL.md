@@ -162,8 +162,13 @@ easier to get right in one pass than to assemble from fragments; chunking comes 
 
 **Chunk on breath.** Each TTS call starts with cold prosody — pitch and emphasis reset at
 every boundary — so boundaries are audible. Put them where a narrator would actually pause,
-never mid-thought. Chunks are not slides: one image can carry many chunks, and one chunk can
-span a montage.
+never mid-thought.
+
+**Chunk boundaries are also picture changes.** The deck shows one image per chunk, so how
+you chunk sets the visual rhythm: a run of short chunks cuts fast, a long one holds. Aim for
+8–15 seconds of speech per chunk (roughly 20–40 words) and the pacing looks after itself.
+Holding one image across several chunks is free — the deck just doesn't transition — so
+chunk for the prose first and let repeated images handle the rest.
 
 Keep chunks under ~70 words.
 
@@ -199,7 +204,7 @@ for that chunk — it's prepended to the TTS input as a direction line and is *n
 and the audio script ignores it.
 
 **A beat is not a slide.** It's a section of the argument — roughly a minute — containing
-several chunks and playing across several slides. See `docs/plan.md` §0 for how beats,
+several chunks, and one slide per chunk. See `docs/plan.md` §0 for how beats,
 chunks and slides relate; conflating them is the easiest mistake here.
 
 ```json

@@ -22,16 +22,33 @@ another.
 | **theme** | a subject area to go looking for pictures in | phase 1, before the essay is written | 2–10 |
 | **beat** | a section of the *argument* — "the money", "who got the credit" | phase 2, in `outline.md` | ~5 |
 | **chunk** | one TTS call, one mp3. A prosodic unit. | phase 2, in `narration.json` | ~20 |
-| **slide** | one visual state; a top-level div in the deck | phase 4, in `index.html` | ~15–25 |
+| **slide** | one visual state; a top-level div in the deck | phase 4, in `index.html` | one per chunk |
 
 How they nest:
 
 - A **chunk** belongs to exactly one beat.
-- A **slide** belongs to exactly one beat — a slide never straddles a beat boundary, because
-  a change of argument is a natural change of picture.
-- **Chunks and slides are decoupled in both directions.** One image can hold across five
-  chunks; one chunk can play over a fast montage of five images. Neither contains the other,
-  and this is why nothing in `narration.json` refers to an image.
+- **One slide per chunk.** The slide changes when the audio does, so the deck advances on
+  `audio.ended` and needs no timers at all.
+- A **slide** therefore belongs to exactly one beat too.
+
+### Why one slide per chunk
+
+Switching pictures *within* a chunk requires knowing which word is spoken at which second.
+We don't have that. The options are to divide the chunk's duration evenly and let the cuts
+land where they land, or to add forced alignment (whisper word timestamps) as a further
+stage. The first is blind; the second is a dependency and a phase. Both put timers back into
+the runtime, which is the thing `audio.ended` was chosen to remove.
+
+Tying visuals to chunk boundaries costs nothing, because chunks are already the right size.
+For the Golden Gate narration — 21 chunks, 589 words — one image each gives a median of
+10.8 seconds on screen, ranging 5.6 to 20. That is ordinary documentary shot length, arrived
+at without tuning: chunks are prosodic units, and a breath is about as long as a picture
+wants to be held.
+
+**Holding one image across several chunks is still free.** A chunk whose visual is the same
+as its predecessor simply doesn't transition — the same rule music uses for a track that
+spans several slides. So long holds work; only the reverse, a montage inside one chunk, is
+unavailable, and it can be added later as a deliberate exception that pays for a timer.
 
 A beat is therefore *many chunks and many slides*, roughly a minute of screen time. It is
 not a slide. Themes and beats often correspond, since both follow the subject's natural
