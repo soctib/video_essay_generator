@@ -89,6 +89,9 @@ downscales whatever you give it, so point it at the full-size files instead.
 Decide the argument before writing prose. Produce a short outline: the beats, and one line
 on what each does.
 
+A **beat** is a section of the argument, not a slide — expect around one per minute, each
+carrying several chunks and playing across several slides.
+
 **Find the angle yourself.** A chronology is not an essay. Research documents usually
 contain a thesis if you look for one: a tension, an injustice, a thing that turned out other
 than intended. Finding it is the job, and no worked example is given here on purpose — an
@@ -192,7 +195,12 @@ to diagnose. Fix the writing.
 
 A flat list of chunks. `text` is verbatim narration. `style` is optional and steers delivery
 for that chunk — it's prepended to the TTS input as a direction line and is *not* spoken.
-`beat` is an optional authoring aid that groups chunks for the deck; the audio script ignores it.
+`beat` names the section of the argument a chunk belongs to. It groups chunks for the deck
+and the audio script ignores it.
+
+**A beat is not a slide.** It's a section of the argument — roughly a minute — containing
+several chunks and playing across several slides. See `docs/plan.md` §0 for how beats,
+chunks and slides relate; conflating them is the easiest mistake here.
 
 ```json
 [

@@ -12,6 +12,34 @@ being written first and images fetched to match it.
 
 ---
 
+## 0. Vocabulary
+
+Four units, easy to conflate. They nest differently and none of them is a synonym for
+another.
+
+| unit | what it is | decided in | ~4-min essay |
+|---|---|---|---|
+| **theme** | a subject area to go looking for pictures in | phase 1, before the essay is written | 2–10 |
+| **beat** | a section of the *argument* — "the money", "who got the credit" | phase 2, in `outline.md` | ~5 |
+| **chunk** | one TTS call, one mp3. A prosodic unit. | phase 2, in `narration.json` | ~20 |
+| **slide** | one visual state; a top-level div in the deck | phase 4, in `index.html` | ~15–25 |
+
+How they nest:
+
+- A **chunk** belongs to exactly one beat.
+- A **slide** belongs to exactly one beat — a slide never straddles a beat boundary, because
+  a change of argument is a natural change of picture.
+- **Chunks and slides are decoupled in both directions.** One image can hold across five
+  chunks; one chunk can play over a fast montage of five images. Neither contains the other,
+  and this is why nothing in `narration.json` refers to an image.
+
+A beat is therefore *many chunks and many slides*, roughly a minute of screen time. It is
+not a slide. Themes and beats often correspond, since both follow the subject's natural
+divisions, but a theme is a search plan made before the argument exists and a beat is a
+piece of the argument — the essay may drop a theme entirely, or split one across two beats.
+
+---
+
 ## 1. Pipeline
 
 ```
