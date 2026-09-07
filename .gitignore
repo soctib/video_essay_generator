@@ -71,3 +71,13 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 *.swp
+
+# Essay working files — descriptions and plans are tracked, binaries are not
+essays/*/images/*.jpg
+essays/*/images/*.jpeg
+essays/*/images/*.png
+essays/*/images/*.webp
+essays/*/images/*.gif
+essays/*/images/thumbs/
+essays/*/images/.candidates/
+essays/*/build/
