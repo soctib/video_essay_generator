@@ -13,13 +13,53 @@ Output: `essays/<slug>/outline.md` (pass 1) and `essays/<slug>/narration.json` (
 omit, reorder, take a position. A research doc is written to be read; narration is written
 to be heard, and read aloud verbatim it sounds like a briefing.
 
-Budget ~150 words per minute. A 4-minute essay is ~600 words.
+Budget ~150 words per minute, and aim ~10% under target: a 4-minute essay is ~540 words,
+not 600. The word count measures speech only, while the render adds a pause at every chunk
+boundary, so a script that computes to exactly 4:00 runs over.
 
 ## Read the image pool first
 
 **Read `pool/*.json` before writing a word.** The whole pipeline is built on images being an
 *input* to authoring rather than an output of it — writing from the research document alone
 throws that away, and produces narration that asks for pictures nobody has.
+
+### What's in a pool file
+
+`images/pool/<theme>.json` is a JSON array, one record per kept image:
+
+| field | use |
+|---|---|
+| `id` / `file` | the id goes in the outline; the path is what the deck references |
+| `depicts` | the composition — what the frame contains |
+| `details` | the specific, narratable things. Written by someone who looked. |
+| `visible_text` | text inside the image. Often carries dates, names, inscriptions. |
+| `notes` | **the gatherer's warnings. Read every one.** They flag stand-ins, near-misses and things that must not be captioned as what they resemble — e.g. a modern net that is not the 1936 net, or a signing photograph not documented as bridge-related. Writing against one of these produces a confident false claim. |
+| `license` | see below |
+| `orientation` / `width` / `height` | portrait images are a constraint in a 16:9 deck |
+
+### Reconcile the pool before writing
+
+The pool may not be complete. Check, and report the gaps in the outline:
+
+```bash
+ls essays/<slug>/images/*.jpg | sed 's/.*\///; s/-[0-9]*\.jpg//' | sort -u   # themes with files
+ls essays/<slug>/images/pool/*.json                                          # themes with descriptions
+cat essays/<slug>/images/plan.md                                             # themes that were planned
+```
+
+A theme with files but no JSON is **invisible to you** — those images exist and cannot be
+used, because nothing describes them. A theme in the plan with neither is a gather failure.
+Either way, say so before writing rather than silently producing an essay that avoids a
+third of its subject. Whether to write toward a missing theme anyway is the user's call.
+
+### Licence
+
+Some records are All Rights Reserved or `by-nc-nd`. For personal viewing that's fine, and
+the deck is not distributed. Prefer freely-licensed images where the choice is even, note
+in the outline when a beat leans on a restricted one, and treat no-derivatives images as
+uncroppable.
+
+### Reading the pool
 
 Work from the descriptions, not the images. Three things to take from them:
 
@@ -34,36 +74,54 @@ Occasionally an image is good enough to earn its own beat. The 1936 aerial dated
 before cable spinning finished is a better opening for a construction passage than anything
 written from the prose. Let that happen.
 
-If you need to see something, open the 1200px file. To compare several, contact-sheet the
-320px thumbs (`gather-images/contact_sheet.py`) rather than opening each one.
+If you need to see something, open its file. To compare several, build a contact sheet
+rather than opening each one — it costs about 137 tokens per image instead of ~3,400:
+
+```bash
+python3 .claude/skills/gather-images/contact_sheet.py sheet.jpg IMG IMG IMG ...
+```
+
+Pools gathered before thumbnails were introduced have no `thumbs/` directory. The script
+downscales whatever you give it, so point it at the full-size files instead.
 
 ## Pass 1 — Shape
 
 Decide the argument before writing prose. Produce a short outline: the beats, and one line
 on what each does.
 
-**Find the angle.** A chronology is not an essay. The research document usually contains a
-thesis if you look — for the Golden Gate Bridge it's that the bridge is credited to the man
-who promoted it rather than the man who designed it, which turns five facts into an argument
-with an ending. Take a position where the material supports one.
+**Find the angle yourself.** A chronology is not an essay. Research documents usually
+contain a thesis if you look for one: a tension, an injustice, a thing that turned out other
+than intended. Finding it is the job, and no worked example is given here on purpose — an
+example thesis would just get adopted instead of the right one for this material.
 
-Write it to `essays/<slug>/outline.md` and show it to the user before pass 2. It's thirty
-seconds to read and it's the cheapest point to change direction.
+**Test the angle against the pool before committing to it.** An argument the images cannot
+illustrate is the wrong argument, however good it reads. Two candidate angles are common:
+the one the research document emphasises, and the one the pool is richest in. When they
+disagree, say so in the outline and let the user choose — that disagreement is worth
+surfacing, not resolving silently.
+
+Write it to `essays/<slug>/outline.md` and put it in front of the user before pass 2. It's
+thirty seconds to read and it's the cheapest point to change direction.
+
+If you're running unattended and can't pause, carry on into pass 2 — but lead your final
+report with the angle you chose, the angle you rejected, and any gap you found, so the
+decision is reviewable after the fact rather than buried.
 
 **Record candidate images per beat, by id.** Not as a layout — that's phase 4's decision —
 but as a record of what the prose was written against:
 
 ```markdown
-## beat: credit
-The bridge is credited to the man who promoted it, not the man who designed it.
-Turns the piece from chronology into argument, and sets up the ending.
+## beat: <slug>
+One or two lines: what this beat argues and what it sets up.
 
-images: people-11 (Strauss statue, "THE MAN WHO BUILT THE BRIDGE" legible)
-        people-04 (1937 dedication plaque, Ellis absent from it)
-        people-22 (LoC drawing sheet, signature visible)
-thin:   no free portrait of Ellis exists — the argument has to be carried by
-        objects rather than faces
+images: <theme>-NN (why this one — the specific thing visible in it)
+        <theme>-NN (…)
+thin:   what this beat needs and the pool does not have
 ```
+
+**Use real ids, copied from the pool files.** Do not write ids from memory or pattern —
+they look plausible and are wrong, and whoever reads the outline next will burn time
+discovering that rather than assuming it.
 
 This is the one piece of authoring knowledge that otherwise evaporates. You will have read
 the whole pool and formed opinions; phase 4 should not have to re-derive them and hope it
@@ -86,8 +144,14 @@ easier to get right in one pass than to assemble from fragments; chunking comes 
   that can't be held in the head is noise when spoken.
 - **Never narrate a citation.** Sources go on screen, not into the voice.
 - **No parenthetical asides.** They read fine and narrate terribly.
-- **Nothing that isn't in the research document.** The tempting embellishment is usually a
-  half-remembered detail from training data. If it isn't in the doc, it doesn't go in.
+- **Two sources, and only two: the research document and the image descriptions.** The pool
+  is a citable source, not just a picture library — `visible_text` and `details` routinely
+  carry facts the research doc lacks: what a plaque actually says, who is listed on it, what
+  is and isn't in the frame. Those are often the best lines in the essay, because they are
+  things the writer observed rather than read.
+  What is banned is the third source: your own memory. The tempting embellishment is a
+  half-remembered detail from training data, and it is usually plausible, specific, and
+  wrong. If it is in neither the research document nor a description, it does not go in.
 - **End on an object, not a summation.** "The drawings, in the Library of Congress, are
   signed by Charles Ellis" beats any sentence explaining what it means.
 
