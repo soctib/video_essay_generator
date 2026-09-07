@@ -21,7 +21,7 @@ research.md
 images/ + descriptions
     │
     ▼  phase 2 — author          main context, working from descriptions
-narration.json
+outline.md + narration.json
     │
     ├──▼  phase 3 — audio        script, mechanical
     │   audio/NN.mp3

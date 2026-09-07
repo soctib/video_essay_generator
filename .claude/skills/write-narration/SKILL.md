@@ -7,7 +7,7 @@ description: Phase 2 of the video essay pipeline. Turns a research document and 
 
 Input: `essays/<slug>/research.md`, `essays/<slug>/images/pool/*.json`, and the target
 length in minutes.
-Output: `essays/<slug>/narration.json`
+Output: `essays/<slug>/outline.md` (pass 1) and `essays/<slug>/narration.json` (passes 2–3)
 
 **This is not a summary of the research document.** It's an essay written from it. Compress,
 omit, reorder, take a position. A research doc is written to be read; narration is written
@@ -47,8 +47,32 @@ thesis if you look — for the Golden Gate Bridge it's that the bridge is credit
 who promoted it rather than the man who designed it, which turns five facts into an argument
 with an ending. Take a position where the material supports one.
 
-Show the outline to the user before pass 2. It's thirty seconds to read and it's the cheapest
-point to change direction.
+Write it to `essays/<slug>/outline.md` and show it to the user before pass 2. It's thirty
+seconds to read and it's the cheapest point to change direction.
+
+**Record candidate images per beat, by id.** Not as a layout — that's phase 4's decision —
+but as a record of what the prose was written against:
+
+```markdown
+## beat: credit
+The bridge is credited to the man who promoted it, not the man who designed it.
+Turns the piece from chronology into argument, and sets up the ending.
+
+images: people-11 (Strauss statue, "THE MAN WHO BUILT THE BRIDGE" legible)
+        people-04 (1937 dedication plaque, Ellis absent from it)
+        people-22 (LoC drawing sheet, signature visible)
+thin:   no free portrait of Ellis exists — the argument has to be carried by
+        objects rather than faces
+```
+
+This is the one piece of authoring knowledge that otherwise evaporates. You will have read
+the whole pool and formed opinions; phase 4 should not have to re-derive them and hope it
+lands on the same photograph. The `thin` line is equally load-bearing — it's what tells
+phase 4 to reach for a diagram, a chart or a typographic slide.
+
+`narration.json` itself stays a flat list of `text` and `style`. Chunks and visuals are
+decoupled in both directions, so a per-chunk image field would assert a relationship that
+doesn't exist, and the audio script wants nothing but the words.
 
 ## Pass 2 — Write it continuously
 
