@@ -81,3 +81,11 @@ essays/*/images/*.gif
 essays/*/images/thumbs/
 essays/*/images/.candidates/
 essays/*/build/
+
+# Music library — metadata is tracked, audio is not (see plan.md §5)
+music/*.mp3
+music/*.m4a
+music/*.ogg
+music/*.opus
+music/*.wav
+music/*.flac

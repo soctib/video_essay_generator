@@ -253,8 +253,30 @@ Written once, by hand, at curation time:
 { "id": "sparse-02", "file": "music/sparse-02.mp3",
   "mood": "quiet, unresolved", "intensity": 2, "tempo": "slow",
   "duration": 184, "loops_cleanly": true,
-  "credit": "Kevin MacLeod — Incompetech (CC BY)" }
+  "credit": "Kevin MacLeod — Incompetech (CC BY)",
+  "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/...",
+  "refetchable": true }
 ```
+
+### The audio files are not checked in
+
+**The public repo is where "personal use" stops being true.** Playing a deck locally is
+personal use; committing the tracks to a public GitHub repository is redistribution,
+whatever the intent. The same applies to the gathered images, which is the real reason those
+are gitignored — repo size is the lesser argument.
+
+So `library.json` is tracked and the audio is not, which makes re-fetchability the thing to
+design for. Record `source_url` per track and be honest about `refetchable`:
+
+- **Stable**: Internet Archive (permanent identifiers), Incompetech, Musopen. A URL here
+  genuinely brings the file back.
+- **Not stable**: YouTube's Audio Library has no permalinks — tracks are downloaded by hand
+  from Studio and can only be found again by title. Mark these `refetchable: false` and
+  record the exact title.
+
+The library is a local asset, like a font collection — `library.json` is the record of what
+it should contain, not a manifest that can rebuild it unattended. Back the audio up
+separately from git.
 
 `loops_cleanly` is worth recording while listening; it's far easier to notice then than to
 detect later. The judgement stays with the curator — assignment is then mechanical: match a
